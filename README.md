@@ -1,73 +1,77 @@
-# React + TypeScript + Vite
+# React Kanban
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A small three-column Kanban board built with React + TypeScript + Vite. Cards carry a priority tag, move between columns via drag-and-drop or a per-card dropdown, and persist across refreshes via `localStorage`.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Three columns**: To Do, In Progress, Done
+- **Priority tags**: `high` (red), `medium` (yellow), `low` (green)
+- **Two ways to move a card**:
+  - Drag-and-drop (pointer + keyboard, via `@dnd-kit/core`)
+  - Per-card "Move to" `<select>` dropdown (accessible fallback)
+- **Add card form** at the top: title + priority → creates a card in To Do
+- **Delete card** button (`×`) on each card
+- **Persistent state** in `localStorage` under key `kanban-cards-v1`
+- **Corruption-safe load**: malformed or tampered storage is sanitized on read (non-array root → empty list; items with unknown `column` / bad fields are filtered out) and self-heals on the next write
 
-## React Compiler
+## Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React 19 + TypeScript
+- Vite 7
+- `@dnd-kit/core` + `@dnd-kit/sortable` for drag-and-drop
+- CSS Modules for component-scoped styles
+- `crypto.randomUUID()` for card IDs (no UUID dependency)
 
-## Expanding the ESLint configuration
+## Getting started
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Requires Node.js ≥ 20.19 (Vite 7 engine requirement).
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev      # start dev server at http://localhost:5173
+npm run build    # type-check + production build
+npm run preview  # serve the built bundle
+npm run lint     # eslint
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Project structure
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
 ```
+src/
+├── App.tsx                       # mounts <KanbanBoard />
+├── main.tsx                      # React entry
+├── index.css                     # reset + base styles
+├── types.ts                      # Card, Priority, ColumnId, parseCards, type guards
+├── hooks/
+│   └── useLocalStorage.ts        # persisted state with optional validate()
+└── components/
+    ├── KanbanBoard.tsx           # root: state, DndContext, add form
+    ├── Column.tsx                # droppable column
+    ├── Card.tsx                  # draggable card + dropdown + delete
+    └── AddCardForm.tsx           # title input + priority select
+```
+
+## Data model
+
+```ts
+type Priority = 'high' | 'medium' | 'low';
+type ColumnId = 'todo' | 'inProgress' | 'done';
+
+interface Card {
+  id: string;
+  title: string;
+  priority: Priority;
+  column: ColumnId;
+}
+```
+
+The single source of truth is a `Card[]` in `KanbanBoard`, grouped per column by `useMemo`. Mutations (`addCard` / `moveCard` / `deleteCard`) all go through `setCards`, which triggers the `useLocalStorage` write effect.
+
+## localStorage & validation
+
+On load, `useLocalStorage` calls `parseCards` (a validator passed from `KanbanBoard`):
+
+- If `JSON.parse` result is **not an array** → returns `[]`.
+- Otherwise returns the array with malformed items filtered out — each card must have a `string` id, `string` title, a valid `priority`, and a known `column`.
+
+Because the sanitized result is what goes back into state (and then back into storage on the next effect), bad data can't stably reproduce a crash — it gets cleaned up on the first render after load.
