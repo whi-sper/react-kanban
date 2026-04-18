@@ -8,14 +8,16 @@ import {
 } from '@dnd-kit/core';
 import type { DragEndEvent } from '@dnd-kit/core';
 import type { Card as CardType, ColumnId, Priority } from '../types';
-import { COLUMNS, STORAGE_KEY, isColumnId } from '../types';
+import { COLUMNS, STORAGE_KEY, isColumnId, parseCards } from '../types';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { AddCardForm } from './AddCardForm';
 import { Column } from './Column';
 import styles from './KanbanBoard.module.css';
 
 export function KanbanBoard() {
-  const [cards, setCards] = useLocalStorage<CardType[]>(STORAGE_KEY, []);
+  const [cards, setCards] = useLocalStorage<CardType[]>(STORAGE_KEY, [], {
+    validate: parseCards,
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
