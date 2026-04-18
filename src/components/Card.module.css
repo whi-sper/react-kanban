@@ -1,0 +1,122 @@
+.card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(9, 30, 66, 0.12),
+              0 0 1px rgba(9, 30, 66, 0.2);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  touch-action: none;
+  transition: box-shadow 0.15s;
+}
+
+.card:hover {
+  box-shadow: 0 4px 8px rgba(9, 30, 66, 0.16),
+              0 0 1px rgba(9, 30, 66, 0.3);
+}
+
+.dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+
+.dragHandle {
+  cursor: grab;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.priority {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #fff;
+}
+
+.priority_high {
+  background: #e53935;
+}
+
+.priority_medium {
+  background: #fbc02d;
+  color: #3d2c00;
+}
+
+.priority_low {
+  background: #43a047;
+}
+
+.title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: #172b4d;
+  word-break: break-word;
+}
+
+.deleteBtn {
+  background: transparent;
+  border: none;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  line-height: 1;
+  color: #6b778c;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.deleteBtn:hover {
+  background: #ebecf0;
+  color: #de350b;
+}
+
+.moveLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #6b778c;
+}
+
+.moveLabelText {
+  flex-shrink: 0;
+}
+
+.moveSelect {
+  flex: 1;
+  padding: 4px 6px;
+  border: 1px solid #d0d4da;
+  border-radius: 4px;
+  font: inherit;
+  font-size: 12px;
+  background: #fff;
+  color: #172b4d;
+  cursor: pointer;
+}
+
+.moveSelect:focus {
+  outline: 2px solid #4c9aff;
+  outline-offset: 1px;
+}
